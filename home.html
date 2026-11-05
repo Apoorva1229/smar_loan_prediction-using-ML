@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block title %}Home · SmartLoan{% endblock %}{% block content %}
+<section class="hero">
+  <div><p class="kicker">SMARTER LOAN-ELIGIBILITY LEARNING</p><h1>Understand a loan prediction in a few simple steps.</h1>
+  <p class="lead">A student machine-learning project that demonstrates how applicant details are passed to a trained Decision Tree model.</p>
+  <div class="actions"><a class="btn" href="{{ url_for('register') }}">Get started</a><a class="btn secondary" href="{{ url_for('login') }}">Login</a></div></div>
+  <div class="hero-card"><div class="mini-icon">LW</div><h3>Loan prediction</h3><p>Enter sample applicant information and view the model's predicted class.</p><div class="statline"><span>Model</span><strong>Decision Tree</strong></div><div class="statline"><span>Inputs</span><strong>5 features</strong></div></div>
+</section>
+<section class="section"><p class="kicker">HOW IT WORKS</p><h2>Simple, transparent workflow</h2><div class="grid three">
+  <article class="tile"><b>01</b><h3>Create an account</h3><p>Register with your name, email and password.</p></article>
+  <article class="tile"><b>02</b><h3>Enter sample details</h3><p>Submit the five fields used by the existing trained model.</p></article>
+  <article class="tile"><b>03</b><h3>Review your history</h3><p>See your previous predictions in your private dashboard.</p></article>
+</div></section>
+<section class="notice"><strong>Important:</strong> This is an educational demonstration, not a real loan approval system. The current model uses gender and marital status, which can create unfair outcomes. Do not use it to make real lending decisions or enter sensitive real-world financial information.</section>
+{% endblock %}
