@@ -1,0 +1,34 @@
+
+{% extends "base.html" %}
+
+{% block title %}Profile · LoanWise{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <p class="eyebrow">ACCOUNT SETTINGS</p>
+    <h1>Your Profile</h1>
+</div>
+
+<div class="profile-card">
+
+    <div class="avatar">
+        {{ user['name'][:1]|upper }}
+    </div>
+
+    <h2>{{ user['name'] }}</h2>
+    <p>{{ user['email'] }}</p>
+
+    <div class="profile-line">
+        <span>Account ID</span>
+        <b>{{ user['id'] }}</b>
+    </div>
+
+    <div class="profile-line">
+        <span>Joined</span>
+        <b>{{ user['created_at'] }}</b>
+    </div>
+
+</div>
+
+{% endblock %}

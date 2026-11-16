@@ -1,0 +1,54 @@
+
+{% extends "admin_base.html" %}
+
+{% block title %}Manage Users · LoanWise{% endblock %}
+
+{% block content %}
+
+<div class="admin-top">
+    <div>
+        <p class="eyebrow">USER MANAGEMENT</p>
+        <h1>Registered Users</h1>
+        <p>View user accounts and their prediction activity.</p>
+    </div>
+</div>
+
+<section class="panel">
+
+    <div class="table-scroll">
+
+        <table>
+
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Joined</th>
+                <th>Predictions</th>
+            </tr>
+
+            {% for u in users %}
+
+            <tr>
+                <td>{{ u['id'] }}</td>
+                <td>{{ u['name'] }}</td>
+                <td>{{ u['email'] }}</td>
+                <td>{{ u['created_at'] }}</td>
+                <td>{{ u['prediction_count'] }}</td>
+            </tr>
+
+            {% else %}
+
+            <tr>
+                <td colspan="5">No users found.</td>
+            </tr>
+
+            {% endfor %}
+
+        </table>
+
+    </div>
+
+</section>
+
+{% endblock %}

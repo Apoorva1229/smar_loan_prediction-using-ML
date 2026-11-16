@@ -1,0 +1,128 @@
+
+{% extends "admin_base.html" %}
+
+{% block title %}Admin Dashboard · LoanWise{% endblock %}
+
+{% block content %}
+
+<div class="admin-top">
+
+    <div>
+        <p class="eyebrow">CONTROL CENTER</p>
+        <h1>Dashboard Overview</h1>
+        <p>Welcome back, {{ session.get('admin_username') }}.</p>
+    </div>
+
+    <span class="live-pill">SYSTEM OVERVIEW</span>
+
+</div>
+
+<div class="metric-grid">
+
+    <article>
+        <span>Total Users</span>
+        <strong>{{ total_users }}</strong>
+        <small>Registered accounts</small>
+    </article>
+
+    <article>
+        <span>Total Predictions</span>
+        <strong>{{ total_predictions }}</strong>
+        <small>Saved applications</small>
+    </article>
+
+    <article>
+        <span>Approved Results</span>
+        <strong>{{ approved }}</strong>
+        <small>Model predictions</small>
+    </article>
+
+    <article>
+        <span>Rejected Results</span>
+        <strong>{{ rejected }}</strong>
+        <small>Model predictions</small>
+    </article>
+
+</div>
+
+<div class="admin-columns">
+
+    <section class="panel">
+
+        <div class="panel-head">
+            <h2>Recent Loan Predictions</h2>
+            <a href="{{ url_for('admin_predictions') }}">View All</a>
+        </div>
+
+        <div class="table-scroll">
+
+            <table>
+                <tr>
+                    <th>User</th>
+                    <th>Income</th>
+                    <th>Loan</th>
+                    <th>Result</th>
+                </tr>
+
+                {% for r in recent %}
+                <tr>
+                    <td>
+                        {{ r['user_name'] or 'Unknown' }}
+                        <small>{{ r['email'] or '' }}</small>
+                    </td>
+
+                    <td>{{ r['applicant_income'] }}</td>
+                    <td>{{ r['loan_amount'] }}</td>
+
+                    <td>
+                        <span class="tag {{ r['result']|lower }}">
+                            {{ r['result'] }}
+                        </span>
+                    </td>
+                </tr>
+
+                {% else %}
+                <tr>
+                    <td colspan="4">No predictions yet.</td>
+                </tr>
+                {% endfor %}
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <section class="panel">
+
+        <div class="panel-head">
+            <h2>New Users</h2>
+            <a href="{{ url_for('manage_users') }}">View All</a>
+        </div>
+
+        {% for u in new_users %}
+
+        <div class="user-row">
+
+            <div class="user-avatar">
+                {{ u['name'][:1]|upper }}
+            </div>
+
+            <div>
+                <b>{{ u['name'] }}</b>
+                <small>{{ u['email'] }}</small>
+            </div>
+
+        </div>
+
+        {% else %}
+
+        <p>No users registered yet.</p>
+
+        {% endfor %}
+
+    </section>
+
+</div>
+
+{% endblock %}

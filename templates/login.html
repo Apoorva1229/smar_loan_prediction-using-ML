@@ -1,0 +1,40 @@
+
+{% extends "base.html" %}
+
+{% block title %}Login · LoanWise{% endblock %}
+
+{% block content %}
+
+<div class="auth-wrap">
+    <section class="auth-card">
+
+        <p class="eyebrow">WELCOME BACK</p>
+        <h1>Sign in</h1>
+
+        <p class="muted">Continue to your LoanWise dashboard.</p>
+
+        <form method="POST" class="form">
+
+            <label>Email Address</label>
+            <input type="email" name="email" required>
+
+            <label>Password</label>
+            <input type="password" name="password" required>
+
+            <button class="btn primary full">Login</button>
+
+        </form>
+
+        <p class="auth-foot">
+            <a href="{{ url_for('forgot_password') }}">Forgot password?</a>
+        </p>
+
+        <p class="auth-foot">
+            New to LoanWise?
+            <a href="{{ url_for('register') }}">Create account</a>
+        </p>
+
+    </section>
+</div>
+
+{% endblock %}

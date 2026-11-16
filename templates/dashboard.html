@@ -1,0 +1,71 @@
+
+{% extends "base.html" %}
+
+{% block title %}Dashboard · LoanWise{% endblock %}
+
+{% block content %}
+
+<div class="page-heading">
+    <p class="eyebrow">YOUR WORKSPACE</p>
+    <h1>Hello, {{ session.get('user_name') }}.</h1>
+    <p class="muted">Your loan prediction activity at a glance.</p>
+</div>
+
+<div class="stats">
+
+    <article class="stat">
+        <span>Total Predictions</span>
+        <strong>{{ total }}</strong>
+    </article>
+
+    <article class="stat">
+        <span>Account</span>
+        <strong class="stat-word">Active</strong>
+    </article>
+
+</div>
+
+<div class="section-head">
+    <h2>Recent Predictions</h2>
+    <a href="{{ url_for('history') }}">View All →</a>
+</div>
+
+{% if recent %}
+
+<div class="table-wrap">
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Income</th>
+            <th>Loan Amount</th>
+            <th>Result</th>
+        </tr>
+
+        {% for row in recent %}
+        <tr>
+            <td>{{ row['created_at'] }}</td>
+            <td>{{ row['applicant_income'] }}</td>
+            <td>{{ row['loan_amount'] }}</td>
+            <td>
+                <span class="status {{ row['result']|lower }}">
+                    {{ row['result'] }}
+                </span>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% else %}
+
+<div class="empty">
+    <h3>No predictions yet</h3>
+    <p>Your saved predictions will appear here.</p>
+    <a class="btn primary" href="{{ url_for('predict') }}">
+        Make a Prediction
+    </a>
+</div>
+
+{% endif %}
+
+{% endblock %}

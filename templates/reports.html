@@ -1,0 +1,67 @@
+
+{% extends "admin_base.html" %}
+
+{% block title %}Reports · LoanWise{% endblock %}
+
+{% block content %}
+
+<div class="admin-top">
+    <div>
+        <p class="eyebrow">ANALYTICS</p>
+        <h1>Prediction Reports</h1>
+        <p>Summary of saved model results.</p>
+    </div>
+</div>
+
+<div class="metric-grid">
+
+    <article>
+        <span>Total Predictions</span>
+        <strong>{{ total }}</strong>
+        <small>All records</small>
+    </article>
+
+    <article>
+        <span>Approved</span>
+        <strong>{{ approved }}</strong>
+        <small>{{ approved_pct }}% of total</small>
+    </article>
+
+    <article>
+        <span>Rejected</span>
+        <strong>{{ rejected }}</strong>
+        <small>{{ rejected_pct }}% of total</small>
+    </article>
+
+</div>
+
+<section class="panel report-panel">
+
+    <h2>Result Distribution</h2>
+
+    <div class="bar-label">
+        <span>Approved</span>
+        <b>{{ approved_pct }}%</b>
+    </div>
+
+    <div class="bar">
+        <i style="width: {{ approved_pct }}%"></i>
+    </div>
+
+    <div class="bar-label">
+        <span>Rejected</span>
+        <b>{{ rejected_pct }}%</b>
+    </div>
+
+    <div class="bar rejected-bar">
+        <i style="width: {{ rejected_pct }}%"></i>
+    </div>
+
+    <p class="note">
+        These figures summarize model predictions.
+        They do not represent actual bank decisions.
+    </p>
+
+</section>
+
+{% endblock %}

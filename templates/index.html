@@ -1,0 +1,79 @@
+
+{% extends "base.html" %}
+
+{% block title %}Home · LoanWise{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+
+    <div class="hero-copy">
+        <p class="eyebrow">SMARTER FINANCIAL DECISIONS</p>
+
+        <h1>Make your loan journey <span>simpler.</span></h1>
+
+        <p class="lead">
+            Explore a machine-learning estimate using your application details.
+            Clear, quick and easy to understand.
+        </p>
+
+        <div class="actions">
+            <a class="btn primary" href="{{ url_for('register') }}">
+                Create Account
+            </a>
+
+            <a class="btn secondary" href="{{ url_for('login') }}">
+                Sign In
+            </a>
+        </div>
+
+        <p class="fine">
+            LoanWise provides an estimate, not a bank approval or guarantee.
+        </p>
+    </div>
+
+    <div class="hero-card">
+        <div class="mini-label">LOANWISE INSIGHT</div>
+
+        <div class="circle">LW</div>
+
+        <h2>Your next step, made clearer.</h2>
+
+        <p>
+            Enter your details and view your model prediction.
+        </p>
+
+        <div class="progress"><i></i></div>
+
+        <div class="progress-caption">
+            <span>Simple</span>
+            <span>Secure</span>
+            <span>Fast</span>
+        </div>
+    </div>
+
+</section>
+
+<section class="feature-grid">
+
+    <article class="feature">
+        <b>01</b>
+        <h3>Create your account</h3>
+        <p>Register and access your personal workspace.</p>
+    </article>
+
+    <article class="feature">
+        <b>02</b>
+        <h3>Enter application details</h3>
+        <p>Provide the information requested by the prediction form.</p>
+    </article>
+
+    <article class="feature">
+        <b>03</b>
+        <h3>View your estimate</h3>
+        <p>Review the result and track past predictions.</p>
+    </article>
+
+</section>
+
+{% endblock %}

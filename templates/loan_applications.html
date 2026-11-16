@@ -1,0 +1,71 @@
+
+{% extends "admin_base.html" %}
+
+{% block title %}Loan Applications · LoanWise{% endblock %}
+
+{% block content %}
+
+<div class="admin-top">
+    <div>
+        <p class="eyebrow">APPLICATION RECORDS</p>
+        <h1>Loan Predictions</h1>
+        <p>Review all user prediction records.</p>
+    </div>
+</div>
+
+<section class="panel">
+
+    <div class="table-scroll">
+
+        <table>
+
+            <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Gender</th>
+                <th>Income</th>
+                <th>Loan Amount</th>
+                <th>Credit</th>
+                <th>Result</th>
+                <th>Date</th>
+            </tr>
+
+            {% for r in rows %}
+
+            <tr>
+                <td>{{ r['id'] }}</td>
+
+                <td>
+                    {{ r['user_name'] or 'Unknown' }}
+                    <small>{{ r['email'] or '' }}</small>
+                </td>
+
+                <td>{{ r['gender'] or '—' }}</td>
+                <td>{{ r['applicant_income'] }}</td>
+                <td>{{ r['loan_amount'] }}</td>
+                <td>{{ r['credit_score'] or '—' }}</td>
+
+                <td>
+                    <span class="tag {{ r['result']|lower }}">
+                        {{ r['result'] }}
+                    </span>
+                </td>
+
+                <td>{{ r['created_at'] }}</td>
+            </tr>
+
+            {% else %}
+
+            <tr>
+                <td colspan="8">No applications found.</td>
+            </tr>
+
+            {% endfor %}
+
+        </table>
+
+    </div>
+
+</section>
+
+{% endblock %}

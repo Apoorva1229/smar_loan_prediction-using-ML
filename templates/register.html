@@ -1,0 +1,44 @@
+
+{% extends "base.html" %}
+
+{% block title %}Register · LoanWise{% endblock %}
+
+{% block content %}
+
+<div class="auth-wrap">
+    <section class="auth-card">
+
+        <p class="eyebrow">JOIN LOANWISE</p>
+        <h1>Create account</h1>
+
+        <p class="muted">
+            Start using your personal loan prediction workspace.
+        </p>
+
+        <form method="POST" class="form">
+
+            <label>Full Name</label>
+            <input type="text" name="name" required maxlength="100"
+                   placeholder="Enter your name">
+
+            <label>Email Address</label>
+            <input type="email" name="email" required
+                   placeholder="Enter your email">
+
+            <label>Password</label>
+            <input type="password" name="password" required minlength="8"
+                   placeholder="At least 8 characters">
+
+            <button class="btn primary full">Create Account</button>
+
+        </form>
+
+        <p class="auth-foot">
+            Already registered?
+            <a href="{{ url_for('login') }}">Sign in</a>
+        </p>
+
+    </section>
+</div>
+
+{% endblock %}
