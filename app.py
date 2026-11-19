@@ -1,3 +1,4 @@
+
 import os
 from dotenv import load_dotenv
 
@@ -133,16 +134,6 @@ def create_tables():
             )
         """)
 
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS admins (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                email TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-
         user_columns = [
             row["name"]
             for row in conn.execute(
@@ -175,48 +166,10 @@ def create_tables():
         conn.close()
 
 
-def ensure_admin_from_env():
-    """
-    Creates the first admin automatically from environment variables:
-    ADMIN_USERNAME, ADMIN_EMAIL, ADMIN_PASSWORD
-    Useful on Render, where the database can reset on every deploy.
-    An existing admin is never overwritten.
-    """
-
-    username = os.environ.get("ADMIN_USERNAME", "").strip()
-    email = os.environ.get("ADMIN_EMAIL", "").strip().lower()
-    password = os.environ.get("ADMIN_PASSWORD", "")
-
-    if not username or not email or len(password) < 8:
-        return
-
-    conn = get_db()
-
-    try:
-
-        exists = conn.execute("""
-            SELECT id
-            FROM admins
-            WHERE email = ? OR username = ?
-        """, (email, username)).fetchone()
-
-        if not exists:
-
-            conn.execute("""
-                INSERT INTO admins (username, email, password)
-                VALUES (?, ?, ?)
-            """, (username, email, generate_password_hash(password)))
-
-            conn.commit()
-
-    finally:
-        conn.close()
-
-
 # Create tables when application starts
 create_tables()
-ensure_admin_from_env()
 
+from functools import wraps
 
 #  SECURITY HEADERS
 
@@ -231,10 +184,11 @@ def add_security_headers(response):
 
 
 # ==========================================
-# 5. LOGIN REQUIRED / ADMIN REQUIRED
+# 5. LOGIN REQUIRED
 # ==========================================
 
 def login_required(func):
+    
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -242,20 +196,6 @@ def login_required(func):
         if "user_id" not in session:
             flash("Please login first.", "warning")
             return redirect(url_for("login"))
-
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
-def admin_required(func):
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-
-        if "admin_id" not in session:
-            flash("Please login as admin first.", "warning")
-            return redirect(url_for("admin_login"))
 
         return func(*args, **kwargs)
 
@@ -826,318 +766,7 @@ def reset_password(token):
 
 
 # ==========================================
-# 16. ADMIN LOGIN / LOGOUT
-# ==========================================
-
-@app.route("/admin/login", methods=["GET", "POST"])
-def admin_login():
-
-    if "admin_id" in session:
-        return redirect(url_for("admin_dashboard"))
-
-    if request.method == "POST":
-
-        # Accepts username OR email in the same field
-        identifier = (
-            request.form.get("username")
-            or request.form.get("email")
-            or request.form.get("identifier")
-            or ""
-        ).strip()
-
-        password = request.form.get("password", "")
-
-        conn = get_db()
-
-        admin = conn.execute("""
-            SELECT *
-            FROM admins
-            WHERE LOWER(username) = LOWER(?)
-               OR LOWER(email) = LOWER(?)
-        """, (identifier, identifier)).fetchone()
-
-        conn.close()
-
-        if admin and check_password_hash(admin["password"], password):
-
-            session.clear()
-            session["admin_id"] = admin["id"]
-            session["admin_username"] = admin["username"]
-
-            flash("Admin login successful!", "success")
-
-            return redirect(url_for("admin_dashboard"))
-
-        flash("Invalid admin credentials.", "danger")
-
-    return render_template("admin_login.html")
-
-
-@app.route("/admin/logout", methods=["GET", "POST"])
-def admin_logout():
-
-    session.clear()
-
-    flash("Admin logged out successfully.", "success")
-
-    return redirect(url_for("admin_login"))
-
-
-# ==========================================
-# 17. ADMIN DASHBOARD
-# ==========================================
-
-@app.route("/admin")
-@app.route("/admin/dashboard")
-@admin_required
-def admin_dashboard():
-
-    conn = get_db()
-
-    total_users = conn.execute(
-        "SELECT COUNT(*) FROM users"
-    ).fetchone()[0]
-
-    total_predictions = conn.execute(
-        "SELECT COUNT(*) FROM predictions"
-    ).fetchone()[0]
-
-    approved = conn.execute(
-        "SELECT COUNT(*) FROM predictions WHERE result = 'Approved'"
-    ).fetchone()[0]
-
-    rejected = conn.execute(
-        "SELECT COUNT(*) FROM predictions WHERE result = 'Rejected'"
-    ).fetchone()[0]
-
-    recent_users = conn.execute("""
-        SELECT id, name, email, created_at
-        FROM users
-        ORDER BY id DESC
-        LIMIT 5
-    """).fetchall()
-
-    recent = conn.execute("""
-        SELECT p.*, u.name AS user_name, u.email AS email
-        FROM predictions p
-        JOIN users u ON u.id = p.user_id
-        ORDER BY p.id DESC
-        LIMIT 10
-    """).fetchall()
-
-    conn.close()
-
-    return render_template(
-        "admin_dashboard.html",
-        total_users=total_users,
-        total_predictions=total_predictions,
-        total_applications=total_predictions,
-        approved=approved,
-        rejected=rejected,
-        new_users=recent_users,
-        recent_users=recent_users,
-        recent=recent,
-        recent_predictions=recent
-    )
-
-
-# ==========================================
-# 18. ADMIN - MANAGE USERS
-# ==========================================
-
-@app.route("/admin/users")
-@admin_required
-def manage_users():
-
-    conn = get_db()
-
-    users = conn.execute("""
-        SELECT
-            u.id,
-            u.name,
-            u.email,
-            u.created_at,
-            COUNT(p.id) AS total_predictions
-        FROM users u
-        LEFT JOIN predictions p ON p.user_id = u.id
-        GROUP BY u.id
-        ORDER BY u.id DESC
-    """).fetchall()
-
-    conn.close()
-
-    return render_template("manage_users.html", users=users)
-
-
-@app.route("/admin/users/<int:user_id>/delete", methods=["POST"])
-@admin_required
-def delete_user(user_id):
-
-    conn = get_db()
-
-    try:
-
-        conn.execute(
-            "DELETE FROM predictions WHERE user_id = ?",
-            (user_id,)
-        )
-
-        conn.execute(
-            "DELETE FROM users WHERE id = ?",
-            (user_id,)
-        )
-
-        conn.commit()
-
-        flash("User deleted successfully.", "success")
-
-    except sqlite3.Error:
-
-        conn.rollback()
-        app.logger.exception("Delete user failed")
-        flash("Could not delete user.", "danger")
-
-    finally:
-        conn.close()
-
-    return redirect(url_for("manage_users"))
-
-
-# ==========================================
-# 19. ADMIN - LOAN APPLICATIONS
-# ==========================================
-
-@app.route("/admin/predictions")
-@app.route("/admin/loans", endpoint="loan_applications")
-@admin_required
-def admin_predictions():
-
-    conn = get_db()
-
-    applications = conn.execute("""
-        SELECT
-            p.id,
-            p.applicant_income,
-            p.loan_amount,
-            p.credit_score,
-            p.result,
-            p.created_at,
-            u.name AS user_name,
-            u.email AS user_email,
-            u.email AS email
-        FROM predictions p
-        JOIN users u ON u.id = p.user_id
-        ORDER BY p.id DESC
-    """).fetchall()
-
-    conn.close()
-
-    return render_template(
-        "loan_applications.html",
-        applications=applications,
-        loans=applications,
-        predictions=applications,
-        records=applications
-    )
-
-
-@app.route("/admin/loans/<int:loan_id>/delete", methods=["POST"])
-@admin_required
-def delete_loan(loan_id):
-
-    conn = get_db()
-
-    try:
-
-        conn.execute(
-            "DELETE FROM predictions WHERE id = ?",
-            (loan_id,)
-        )
-
-        conn.commit()
-
-        flash("Record deleted successfully.", "success")
-
-    except sqlite3.Error:
-
-        conn.rollback()
-        app.logger.exception("Delete loan record failed")
-        flash("Could not delete record.", "danger")
-
-    finally:
-        conn.close()
-
-    return redirect(url_for("admin_predictions"))
-
-
-# ==========================================
-# 20. ADMIN - REPORTS
-# ==========================================
-
-@app.route("/admin/reports")
-@admin_required
-def reports():
-
-    conn = get_db()
-
-    total = conn.execute(
-        "SELECT COUNT(*) FROM predictions"
-    ).fetchone()[0]
-
-    approved = conn.execute(
-        "SELECT COUNT(*) FROM predictions WHERE result = 'Approved'"
-    ).fetchone()[0]
-
-    rejected = conn.execute(
-        "SELECT COUNT(*) FROM predictions WHERE result = 'Rejected'"
-    ).fetchone()[0]
-
-    approval_rate = round((approved / total) * 100, 1) if total else 0
-
-    by_credit = conn.execute("""
-        SELECT
-            credit_score,
-            COUNT(*) AS total,
-            SUM(CASE WHEN result = 'Approved' THEN 1 ELSE 0 END) AS approved,
-            SUM(CASE WHEN result = 'Rejected' THEN 1 ELSE 0 END) AS rejected
-        FROM predictions
-        GROUP BY credit_score
-    """).fetchall()
-
-    monthly = conn.execute("""
-        SELECT
-            strftime('%Y-%m', created_at) AS month,
-            COUNT(*) AS total,
-            SUM(CASE WHEN result = 'Approved' THEN 1 ELSE 0 END) AS approved,
-            SUM(CASE WHEN result = 'Rejected' THEN 1 ELSE 0 END) AS rejected
-        FROM predictions
-        WHERE created_at IS NOT NULL
-        GROUP BY month
-        ORDER BY month DESC
-        LIMIT 12
-    """).fetchall()
-
-    total_users = conn.execute(
-        "SELECT COUNT(*) FROM users"
-    ).fetchone()[0]
-
-    conn.close()
-
-    return render_template(
-        "reports.html",
-        total=total,
-        total_predictions=total,
-        total_users=total_users,
-        approved=approved,
-        rejected=rejected,
-        approval_rate=approval_rate,
-        by_credit=by_credit,
-        monthly=monthly
-    )
-
-
-# ==========================================
-# 21. ERROR HANDLING
+# 16. ERROR HANDLING
 # ==========================================
 
 @app.errorhandler(404)
@@ -1151,14 +780,13 @@ def internal_server_error(error):
 
 
 # ==========================================
-# 22. RUN APPLICATION (local only)
-# Render alli: Start Command = gunicorn app:app
+# 17. RUN APPLICATION
 # ==========================================
 
 if __name__ == "__main__":
 
     app.run(
-        debug=os.environ.get("FLASK_DEBUG", "False").lower() == "true",
+        debug=True,
         host="127.0.0.1",
         port=5000
     )
