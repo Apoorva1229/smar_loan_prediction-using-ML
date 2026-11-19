@@ -317,7 +317,11 @@ def register():
 
     if request.method == "POST":
 
-        name = request.form.get("full_name", "").strip()
+        name = (
+            request.form.get("full_name")
+            or request.form.get("name")
+            or ""
+        ).strip()
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
         # Works with or without a "Confirm Password" box in register.html
