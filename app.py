@@ -118,6 +118,8 @@ def create_tables():
                 applicant_income REAL NOT NULL,
                 loan_amount REAL NOT NULL,
                 credit_score TEXT NOT NULL,
+                gender TEXT,
+                marital_status TEXT,
                 result TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY(user_id) REFERENCES users(id)
@@ -168,6 +170,18 @@ def create_tables():
             conn.execute("""
                 ALTER TABLE predictions
                 ADD COLUMN created_at TIMESTAMP
+            """)
+
+        if "gender" not in prediction_columns:
+            conn.execute("""
+                ALTER TABLE predictions
+                ADD COLUMN gender TEXT
+            """)
+
+        if "marital_status" not in prediction_columns:
+            conn.execute("""
+                ALTER TABLE predictions
+                ADD COLUMN marital_status TEXT
             """)
 
         conn.commit()
@@ -567,14 +581,18 @@ def predict():
                     applicant_income,
                     loan_amount,
                     credit_score,
+                    gender,
+                    marital_status,
                     result
                 )
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             """, (
                 session["user_id"],
                 income,
                 amount,
                 credit,
+                gender,
+                marital,
                 result
             ))
 
@@ -616,6 +634,7 @@ def history():
 
     return render_template(
         "history.html",
+        rows=records,
         records=records,
         history=records
     )
