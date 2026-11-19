@@ -1082,6 +1082,8 @@ def admin_predictions():
             p.applicant_income,
             p.loan_amount,
             p.credit_score,
+            p.gender,
+            p.marital_status,
             p.result,
             p.created_at,
             u.name AS user_name,
@@ -1096,6 +1098,7 @@ def admin_predictions():
 
     return render_template(
         "loan_applications.html",
+        rows=applications,
         applications=applications,
         loans=applications,
         predictions=applications,
