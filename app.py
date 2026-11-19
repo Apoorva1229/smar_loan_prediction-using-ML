@@ -177,67 +177,37 @@ def create_tables():
 
 def ensure_admin_from_env():
     """
-    Creates or syncs the admin account from environment variables:
+    Creates the first admin automatically from environment variables:
     ADMIN_USERNAME, ADMIN_EMAIL, ADMIN_PASSWORD
-    The environment values are the source of truth, so changing
-    ADMIN_PASSWORD on Render and redeploying resets the admin password.
+    Useful on Render, where the database can reset on every deploy.
+    An existing admin is never overwritten.
     """
 
     username = os.environ.get("ADMIN_USERNAME", "").strip()
     email = os.environ.get("ADMIN_EMAIL", "").strip().lower()
     password = os.environ.get("ADMIN_PASSWORD", "")
 
-    if not username or not email or not password:
-        app.logger.warning(
-            "ADMIN_USERNAME / ADMIN_EMAIL / ADMIN_PASSWORD not all set. "
-            "Skipping admin auto-creation."
-        )
-        return
-
-    if len(password) < 8:
-        app.logger.warning(
-            "ADMIN_PASSWORD must be at least 8 characters. "
-            "Skipping admin auto-creation."
-        )
+    if not username or not email or len(password) < 8:
         return
 
     conn = get_db()
 
     try:
 
-        existing = conn.execute("""
+        exists = conn.execute("""
             SELECT id
             FROM admins
-            WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?)
-        """, (username, email)).fetchone()
+            WHERE email = ? OR username = ?
+        """, (email, username)).fetchone()
 
-        password_hash = generate_password_hash(password)
-
-        if existing:
-
-            conn.execute("""
-                UPDATE admins
-                SET username = ?, email = ?, password = ?
-                WHERE id = ?
-            """, (username, email, password_hash, existing["id"]))
-
-            app.logger.info("Admin account synced from environment.")
-
-        else:
+        if not exists:
 
             conn.execute("""
                 INSERT INTO admins (username, email, password)
                 VALUES (?, ?, ?)
-            """, (username, email, password_hash))
+            """, (username, email, generate_password_hash(password)))
 
-            app.logger.info("Admin account created from environment.")
-
-        conn.commit()
-
-    except sqlite3.Error:
-
-        conn.rollback()
-        app.logger.exception("Could not create admin from environment")
+            conn.commit()
 
     finally:
         conn.close()
